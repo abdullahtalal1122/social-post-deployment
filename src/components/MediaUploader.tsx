@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { ImageIcon, Upload, X, AlertTriangle, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   ALLOWED_MIME_TYPES,
@@ -29,6 +29,7 @@ export function MediaUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   function clientValidate(f: File): string | null {
     if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(f.type)) {
@@ -66,7 +67,6 @@ export function MediaUploader({
       setError(v);
       return;
     }
-
     const warnings: string[] = [];
     if (isImageMime(file.type)) {
       const aspect = await readImageAspect(file);
@@ -104,6 +104,7 @@ export function MediaUploader({
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
+    setDragOver(false);
     const f = e.dataTransfer.files?.[0];
     if (f) void handleFile(f);
   }
@@ -111,26 +112,36 @@ export function MediaUploader({
   if (value) {
     return (
       <div className="space-y-2">
-        <div className="relative overflow-hidden rounded-md border">
+        <div className="relative overflow-hidden rounded-lg border bg-muted">
           {value.type === "IMAGE" ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={value.url} alt="upload preview" className="max-h-72 w-full object-contain bg-black" />
+            <img
+              src={value.url}
+              alt="upload preview"
+              className="max-h-72 w-full bg-black object-contain"
+            />
           ) : (
             <video src={value.url} controls className="max-h-72 w-full bg-black" />
           )}
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+            className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white shadow transition hover:bg-black"
             aria-label="Remove media"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
         {value.warnings.length > 0 && (
-          <ul className="text-xs text-amber-600">
+          <ul className="space-y-1">
             {value.warnings.map((w, i) => (
-              <li key={i}>⚠ {w}</li>
+              <li
+                key={i}
+                className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning-foreground"
+              >
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>{w}</span>
+              </li>
             ))}
           </ul>
         )}
@@ -141,21 +152,37 @@ export function MediaUploader({
   return (
     <div
       onDrop={onDrop}
-      onDragOver={(e) => e.preventDefault()}
-      className="flex flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20 p-8 text-center"
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      className={
+        "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 text-center transition-colors " +
+        (dragOver
+          ? "border-primary bg-primary/5"
+          : "border-border bg-muted/30 hover:bg-muted/50")
+      }
     >
-      <Upload className="h-8 w-8 text-muted-foreground" />
-      <div className="text-sm text-muted-foreground">
-        Drop an image or video here, or
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-soft-sm">
+        {uploading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        ) : (
+          <ImageIcon className="h-5 w-5 text-muted-foreground" />
+        )}
       </div>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={uploading}
-        onClick={() => inputRef.current?.click()}
-      >
-        {uploading ? "Uploading…" : "Choose file"}
-      </Button>
+      <div className="text-sm">
+        <span className="font-medium">Drop a file</span>
+        <span className="text-muted-foreground"> or </span>
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          className="font-medium text-primary hover:underline focus-ring rounded"
+        >
+          browse
+        </button>
+      </div>
       <input
         ref={inputRef}
         type="file"
@@ -167,8 +194,8 @@ export function MediaUploader({
           e.target.value = "";
         }}
       />
-      <p className="text-xs text-muted-foreground">
-        JPG/PNG up to 8 MB, MP4/MOV up to 100 MB.
+      <p className="text-[11px] text-muted-foreground">
+        JPG/PNG up to 8 MB · MP4/MOV up to 100 MB
       </p>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

@@ -40,7 +40,12 @@ export function extForMime(m: string): string {
 }
 
 export const createPostSchema = z.object({
-  caption: z.string().max(IG_CAPTION_LIMIT, "Caption too long").default(""),
+  caption: z.string().max(63206, "Caption too long").default(""),
+  // Optional separate IG caption — falls back to `caption` if omitted.
+  igCaption: z
+    .string()
+    .max(IG_CAPTION_LIMIT, "Instagram caption too long")
+    .optional(),
   mediaUrl: z.string().url(),
   mediaType: z.enum(["IMAGE", "VIDEO"]),
   socialAccountIds: z.array(z.string().min(1)).min(1, "Pick at least one destination"),

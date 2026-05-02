@@ -75,6 +75,8 @@ export async function POST(req: Request) {
     targetAccounts.map((a) => [a.id, a]),
   );
 
+  const igCaption = input.igCaption ?? input.caption;
+
   await Promise.allSettled(
     post.targets.map(async (target) => {
       const account = accountById.get(target.socialAccountId);
@@ -96,7 +98,7 @@ export async function POST(req: Request) {
             pageAccessToken: account.accessToken,
             mediaUrl: input.mediaUrl,
             mediaType: input.mediaType,
-            caption: input.caption,
+            caption: igCaption,
           });
         }
         await prisma.postTarget.update({
