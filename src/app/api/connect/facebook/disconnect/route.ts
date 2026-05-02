@@ -9,11 +9,11 @@ export async function POST() {
   }
   const userId = session.user.id;
 
-  // Delete both the user-level connection and all the per-Page/IG SocialAccounts
-  await prisma.$transaction([
-    prisma.socialAccount.deleteMany({ where: { userId } }),
-    prisma.metaConnection.deleteMany({ where: { userId } }),
-  ]);
+  // Drop the MetaConnection only. SocialAccount rows are referenced by past
+  // PostTarget rows (post history), so we keep them — without an active
+  // MetaConnection the dashboard treats the user as not connected, and a
+  // future reconnect will refresh tokens via upsert in /api/accounts/refresh.
+  await prisma.metaConnection.deleteMany({ where: { userId } });
 
   return NextResponse.json({ ok: true });
 }
