@@ -12,6 +12,7 @@ model User {
   id             String          @id @default(cuid())
   email          String          @unique
   emailVerified  DateTime?
+  passwordHash   String?
   name           String?
   image          String?
   createdAt      DateTime        @default(now())
@@ -19,6 +20,20 @@ model User {
   sessions       Session[]
   socialAccounts SocialAccount[]
   posts          Post[]
+  metaConnection MetaConnection?
+}
+
+model MetaConnection {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  facebookUserId String    @unique
+  accessToken    String    @db.Text
+  tokenExpiresAt DateTime?
+  profileName    String?
+  profileImage   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {

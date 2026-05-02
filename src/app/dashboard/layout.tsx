@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/lib/auth";
 import { SignOutButton } from "@/components/SignOutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default async function DashboardLayout({
   children,
@@ -10,32 +11,38 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
   if (!session?.user) {
-    redirect("/");
+    redirect("/signin");
   }
 
   async function handleSignOut() {
     "use server";
-    await signOut({ redirectTo: "/" });
+    await signOut({ redirectTo: "/signin" });
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-base font-semibold">
-              Cross-Poster
+            <Link href="/dashboard">
+              <BrandLogo />
             </Link>
-            <nav className="flex items-center gap-4 text-sm">
+            <nav className="hidden items-center gap-4 text-sm sm:flex">
               <Link
                 href="/dashboard"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground transition hover:text-foreground"
               >
-                New post
+                Compose
+              </Link>
+              <Link
+                href="/dashboard/connections"
+                className="text-muted-foreground transition hover:text-foreground"
+              >
+                Connections
               </Link>
               <Link
                 href="/dashboard/history"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground transition hover:text-foreground"
               >
                 History
               </Link>

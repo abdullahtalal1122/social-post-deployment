@@ -31,17 +31,17 @@ export async function POST() {
   }
   const userId = session.user.id;
 
-  // Fetch the user's long-lived FB token from their Account row.
-  const fbAccount = await prisma.account.findFirst({
-    where: { userId, provider: "facebook" },
+  // Fetch the user's long-lived FB user token from their MetaConnection.
+  const conn = await prisma.metaConnection.findUnique({
+    where: { userId },
   });
-  if (!fbAccount?.access_token) {
+  if (!conn?.accessToken) {
     return NextResponse.json(
-      { error: "Facebook account not connected" },
+      { error: "Facebook is not connected — connect it from Connections." },
       { status: 400 },
     );
   }
-  const userToken = fbAccount.access_token;
+  const userToken = conn.accessToken;
 
   // 1) List Pages the user admins
   let pages: FbPage[];
