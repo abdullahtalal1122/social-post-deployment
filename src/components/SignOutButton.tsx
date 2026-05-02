@@ -12,9 +12,10 @@ export function SignOutButton({ action }: { action: () => Promise<void> }) {
       size="sm"
       disabled={pending}
       onClick={() => startTransition(() => action())}
+      title="Sign out"
     >
-      <LogOut className="mr-2 h-4 w-4" />
-      {pending ? "Signing out…" : "Sign out"}
+      <LogOut className="h-4 w-4 sm:mr-2" />
+      <span className="hidden sm:inline">{pending ? "Signing out…" : "Sign out"}</span>
     </Button>
   );
 }

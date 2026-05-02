@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/lib/auth";
 import { SignOutButton } from "@/components/SignOutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ThemeToggleButton } from "@/components/ThemeToggle";
+import { DashboardNav } from "@/components/DashboardNav";
 
 export default async function DashboardLayout({
   children,
@@ -20,43 +22,25 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
-        <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between gap-4">
+          <div className="flex items-center gap-8">
+            <Link href="/dashboard" className="focus-ring rounded">
               <BrandLogo />
             </Link>
-            <nav className="hidden items-center gap-4 text-sm sm:flex">
-              <Link
-                href="/dashboard"
-                className="text-muted-foreground transition hover:text-foreground"
-              >
-                Compose
-              </Link>
-              <Link
-                href="/dashboard/connections"
-                className="text-muted-foreground transition hover:text-foreground"
-              >
-                Connections
-              </Link>
-              <Link
-                href="/dashboard/history"
-                className="text-muted-foreground transition hover:text-foreground"
-              >
-                History
-              </Link>
-            </nav>
+            <DashboardNav />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {session.user.email ?? session.user.name}
             </span>
+            <ThemeToggleButton />
             <SignOutButton action={handleSignOut} />
           </div>
         </div>
       </header>
-      <main className="container py-8">{children}</main>
+      <main className="container py-8 sm:py-10">{children}</main>
     </div>
   );
 }
