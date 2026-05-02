@@ -5,6 +5,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggleButton } from "@/components/ThemeToggle";
 import { DashboardNav } from "@/components/DashboardNav";
+import { MobileNav } from "@/components/MobileNav";
 
 export default async function DashboardLayout({
   children,
@@ -40,7 +41,8 @@ export default async function DashboardLayout({
           </div>
         </div>
       </header>
-      <main className="container py-8 sm:py-10">{children}</main>
+      <main className="container py-8 pb-24 sm:py-10 sm:pb-10">{children}</main>
+      <MobileNav />
     </div>
   );
 }
