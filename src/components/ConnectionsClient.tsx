@@ -2,11 +2,21 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
-import { Facebook, Instagram, RefreshCw, Unplug, Plug } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  RefreshCw,
+  Unplug,
+  Plug,
+  ShieldCheck,
+  AlertTriangle,
+  Sparkles,
+} from "lucide-react";
 import type { SocialAccountDTO } from "@/components/AccountList";
 
 type Connection = {
@@ -34,7 +44,6 @@ export function ConnectionsClient({
     if (flash.connected) {
       toast({ title: "Facebook connected", variant: "success" });
       router.replace("/dashboard/connections");
-      // also kick off a refresh once
       void refresh(true);
     } else if (flash.error) {
       toast({
@@ -103,167 +112,243 @@ export function ConnectionsClient({
     ? Math.round((tokenExpiresAt.getTime() - Date.now()) / 86400000)
     : null;
 
+  const fbCount = accounts.filter((a) => a.platform === "FACEBOOK_PAGE").length;
+  const igCount = accounts.filter((a) => a.platform === "INSTAGRAM_BUSINESS").length;
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Connections</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Connect your Facebook account to give Crosspost permission to publish
-          to your Pages and linked Instagram Business accounts.
+          Connect your Facebook account so Crosspost can publish to your Pages
+          and linked Instagram Business accounts.
         </p>
       </div>
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-          <div className="flex flex-1 items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2]">
-              <Facebook className="h-6 w-6" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-medium">Facebook</div>
-              {connection ? (
-                <div className="text-sm text-muted-foreground">
-                  Connected as{" "}
-                  <span className="font-medium text-foreground">
-                    {connection.profileName ?? "Facebook user"}
+      {/* Connection card */}
+      <Card className="overflow-hidden">
+        <div className="brand-glow border-b">
+          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-4">
+              <div className="relative">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-soft">
+                  <Facebook className="h-7 w-7" />
+                </div>
+                {connection && daysUntilExpiry != null && daysUntilExpiry > 0 && (
+                  <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-success text-white shadow-soft-sm">
+                    <ShieldCheck className="h-3 w-3" />
                   </span>
-                  {daysUntilExpiry !== null && (
-                    <>
-                      {" · "}
-                      {daysUntilExpiry > 14 ? (
-                        <Badge variant="success">
-                          Token good ({daysUntilExpiry}d left)
-                        </Badge>
-                      ) : daysUntilExpiry > 0 ? (
-                        <Badge variant="warning">
-                          Expires in {daysUntilExpiry}d
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive">Token expired</Badge>
-                      )}
-                    </>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  Facebook
+                  {connection ? (
+                    <Badge variant="success">Connected</Badge>
+                  ) : (
+                    <Badge variant="outline">Not connected</Badge>
                   )}
                 </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">Not connected</div>
-              )}
+                {connection ? (
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                    <span>
+                      Connected as{" "}
+                      <span className="font-medium text-foreground">
+                        {connection.profileName ?? "Facebook user"}
+                      </span>
+                    </span>
+                    {daysUntilExpiry !== null && (
+                      <>
+                        <span aria-hidden>·</span>
+                        {daysUntilExpiry > 14 ? (
+                          <Badge variant="success">
+                            Token good ({daysUntilExpiry}d left)
+                          </Badge>
+                        ) : daysUntilExpiry > 0 ? (
+                          <Badge variant="warning">
+                            <AlertTriangle className="h-3 w-3" />
+                            Expires in {daysUntilExpiry}d
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive">Token expired</Badge>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-0.5 text-sm text-muted-foreground">
+                    Connect to import your Pages and Instagram Business accounts.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          {connection ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => refresh(false)}
-                disabled={pending}
-              >
-                <RefreshCw
-                  className={
-                    "mr-2 h-4 w-4 " + (pending ? "animate-spin" : "")
+            {connection ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => refresh(false)}
+                  disabled={pending}
+                >
+                  <RefreshCw
+                    className={"mr-2 h-4 w-4 " + (pending ? "animate-spin" : "")}
+                  />
+                  Sync
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    (window.location.href = "/api/connect/facebook")
                   }
-                />
-                Sync
-              </Button>
+                  disabled={pending}
+                >
+                  <Plug className="mr-2 h-4 w-4" />
+                  Reconnect
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={disconnect}
+                  disabled={pending}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Unplug className="mr-2 h-4 w-4" />
+                  Disconnect
+                </Button>
+              </div>
+            ) : (
               <Button
-                variant="outline"
+                size="lg"
                 onClick={() => (window.location.href = "/api/connect/facebook")}
-                disabled={pending}
+                className="bg-[#1877F2] text-white hover:bg-[#1664d9]"
               >
-                <Plug className="mr-2 h-4 w-4" />
-                Reconnect
+                <Facebook className="mr-2 h-4 w-4" />
+                Connect Facebook
               </Button>
-              <Button
-                variant="destructive"
-                onClick={disconnect}
-                disabled={pending}
-              >
-                <Unplug className="mr-2 h-4 w-4" />
-                Disconnect
-              </Button>
+            )}
+          </CardContent>
+        </div>
+        {connection && accounts.length > 0 && (
+          <div className="flex items-center justify-between gap-4 px-6 py-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1">
+                <Facebook className="h-3 w-3 text-[#1877F2]" />
+                {fbCount} Page{fbCount === 1 ? "" : "s"}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Instagram className="h-3 w-3 text-[#E1306C]" />
+                {igCount} Instagram
+              </span>
             </div>
-          ) : (
-            <Button
-              size="lg"
-              onClick={() => (window.location.href = "/api/connect/facebook")}
-              className="bg-[#1877F2] text-white hover:bg-[#1664d9]"
-            >
-              <Facebook className="mr-2 h-4 w-4" />
-              Connect Facebook
+            <Button asChild size="sm" variant="ghost">
+              <Link href="/dashboard">
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Compose now
+              </Link>
             </Button>
-          )}
-        </CardContent>
+          </div>
+        )}
       </Card>
 
+      {/* Destinations */}
       <div>
-        <h2 className="mb-3 text-lg font-semibold">Destinations</h2>
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Destinations</h2>
+            <p className="text-sm text-muted-foreground">
+              Pages and Instagram Business accounts you can post to.
+            </p>
+          </div>
+        </div>
+
         {!connection ? (
           <Card>
-            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            <CardContent className="py-12 text-center text-sm text-muted-foreground">
               Connect Facebook above to see your Pages and Instagram Business
-              accounts.
+              accounts here.
             </CardContent>
           </Card>
         ) : accounts.length === 0 ? (
           <Card>
-            <CardContent className="space-y-3 py-10 text-center text-sm text-muted-foreground">
-              <p>No destinations yet.</p>
-              <p>
-                Make sure your Instagram is a Business or Creator account linked
-                to a Facebook Page you admin, then click Sync.
-              </p>
+            <CardContent className="space-y-4 py-12 text-center text-sm text-muted-foreground">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <AlertTriangle className="h-5 w-5 text-warning-foreground" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">
+                  No destinations found
+                </p>
+                <p className="mt-1">
+                  Make sure your Instagram is a Business or Creator account
+                  linked to a Facebook Page you admin, then click Sync.
+                </p>
+              </div>
               <Button
                 variant="outline"
                 onClick={() => refresh(false)}
                 disabled={pending}
               >
                 <RefreshCw
-                  className={
-                    "mr-2 h-4 w-4 " + (pending ? "animate-spin" : "")
-                  }
+                  className={"mr-2 h-4 w-4 " + (pending ? "animate-spin" : "")}
                 />
                 Sync
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {accounts.map((a) => (
-              <Card key={a.id}>
-                <CardContent className="flex items-center gap-3 py-4">
-                  {a.profilePicture ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={a.profilePicture}
-                      alt={a.name}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                      {a.platform === "FACEBOOK_PAGE" ? (
-                        <Facebook className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <Instagram className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{a.name}</div>
-                    <Badge
-                      variant={
-                        a.platform === "FACEBOOK_PAGE" ? "default" : "secondary"
-                      }
-                      className="mt-0.5"
-                    >
-                      {a.platform === "FACEBOOK_PAGE"
-                        ? "Facebook Page"
-                        : "Instagram"}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              <DestinationCard key={a.id} account={a} />
             ))}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function DestinationCard({ account }: { account: SocialAccountDTO }) {
+  const isFb = account.platform === "FACEBOOK_PAGE";
+  return (
+    <Card className="overflow-hidden">
+      <div
+        className={
+          "h-2 w-full " +
+          (isFb
+            ? "bg-[#1877F2]"
+            : "bg-gradient-to-r from-[#FEDA77] via-[#F58529] to-[#DD2A7B]")
+        }
+      />
+      <CardContent className="flex items-center gap-3 p-4">
+        {account.profilePicture ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={account.profilePicture}
+            alt={account.name}
+            className="h-12 w-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            {isFb ? (
+              <Facebook className="h-5 w-5 text-[#1877F2]" />
+            ) : (
+              <Instagram className="h-5 w-5 text-[#E1306C]" />
+            )}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">{account.name}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+            {isFb ? (
+              <>
+                <Facebook className="h-3 w-3 text-[#1877F2]" /> Facebook Page
+              </>
+            ) : (
+              <>
+                <Instagram className="h-3 w-3 text-[#E1306C]" /> Instagram Business
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

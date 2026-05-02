@@ -40,7 +40,12 @@ export default async function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Post history</h1>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Post history</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Every post and its per-platform status. Retry any that failed.
+        </p>
+      </div>
       <PostHistory posts={dto} />
     </div>
   );
